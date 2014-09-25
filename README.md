@@ -1,2 +1,2 @@
-BayesianImageRegistration
-=========================
+Bayesian Image Registration
+===========================
