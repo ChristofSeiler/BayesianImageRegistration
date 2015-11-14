@@ -1,0 +1,14 @@
+
+cmake_install.cmake
+
+BayesianImageRegistration.build
+
+BayesianImageRegistration.xcodeproj
+
+CMakeFiles
+
+CMakeScripts
+
+ITKIOFactoryRegistration
+
+CMakeCache.txt

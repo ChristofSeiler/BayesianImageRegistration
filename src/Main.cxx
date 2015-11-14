@@ -776,95 +776,95 @@ int main( int argc, char** argv ) {
     
     clock.Stop();
     
-    // Gauss-Newton optimization
-    clock.Start();
-    
-//    typedef itk::BSplineTransform< CoeffType,Dimension > TransformType;
-//    TransformType::Pointer transform = TransformType::New();
-//    transform->SetTransformDomainOrigin( origin );
-//    transform->SetTransformDomainPhysicalDimensions(physicalSize);
-//    transform->SetTransformDomainDirection( direction );
-//    transform->SetTransformDomainMeshSize(noOfControlPoints);
-    
-    // initalize paramters
+//    // Gauss-Newton optimization
+//    clock.Start();
+//    
+////    typedef itk::BSplineTransform< CoeffType,Dimension > TransformType;
+////    TransformType::Pointer transform = TransformType::New();
+////    transform->SetTransformDomainOrigin( origin );
+////    transform->SetTransformDomainPhysicalDimensions(physicalSize);
+////    transform->SetTransformDomainDirection( direction );
+////    transform->SetTransformDomainMeshSize(noOfControlPoints);
+//    
+//    // initalize paramters
     MatrixXf weights = Eigen::MatrixXf::Zero(Dimension*totalControlPoints, 1);
     MatrixXf weightsAll = Eigen::MatrixXf::Zero(Dimension*totalControlPoints, noOfSteps);
     std::cout << "alpha = " << alpha << ", lam = " << lam << std::endl;
     VectorXf ssds(noOfSteps);
-    
-//    // test createDisplacementField
-//    MatrixXf weightsX(totalControlPoints,1);
-//    weightsX.fill(5.0);
-//    MatrixXf weightsY(totalControlPoints,1);
-//    weightsY.fill(10.0);
-//    weights.block(0,0,totalControlPoints,1) = weightsX;
-//    weights.block(totalControlPoints,0,totalControlPoints,1) = weightsY;
-//    VectorCoefficientImageType::Pointer testDisplacementField = createDisplacementField(weights, controlPointsImage, fixedImage, insideRegion);
-    
-    // precompute the inverse of HessianCW
+//
+////    // test createDisplacementField
+////    MatrixXf weightsX(totalControlPoints,1);
+////    weightsX.fill(5.0);
+////    MatrixXf weightsY(totalControlPoints,1);
+////    weightsY.fill(10.0);
+////    weights.block(0,0,totalControlPoints,1) = weightsX;
+////    weights.block(totalControlPoints,0,totalControlPoints,1) = weightsY;
+////    VectorCoefficientImageType::Pointer testDisplacementField = createDisplacementField(weights, controlPointsImage, fixedImage, insideRegion);
+//    
+//    // precompute the inverse of HessianCW
     SparseMatrix<CoeffType> Jfixed(totalNumberOfPixels,Dimension*totalControlPoints);
-    computeJ(Bmatrix, fixedImage, Jfixed);
-    SparseMatrix<CoeffType> HessianCw = hessV(alpha, lam, Jfixed, S);
-    
-    itk::TimeProbe clockInverse;
-    clockInverse.Start();
-    
-    ConjugateGradient< SparseMatrix<CoeffType> > solver; // use ConjugateGradient for large sparse matrices / SimplicialLLT
-    solver.compute(HessianCw);
-    if(solver.info()!=Success) {
-        std::cout << "decomposition failed" << std::endl;
-    }
-    
-    clockInverse.Stop();
-    std::cout << "compute inverse of HessianCw: " << clockInverse.GetTotal() << std::endl;
-    
-    for(unsigned int step = 0; step < noOfSteps; ++step) {
-        std::cout << "step " << step << std::endl;
-        
-        // write current displacement and warped moving images
-        if(verboseResults) {
-            VectorCoefficientImageType::Pointer displacementField = createDisplacementField(weights, controlPointsImage, fixedImage, insideRegion);
-            saveResults(movingImage, displacementField, step, "GN");
-        }
-        
-        // take next step
-//        MatrixXf J = MatrixXf::Zero(totalNumberOfPixels,Dimension*totalControlPoints);
-//        SparseMatrix<CoeffType> J(totalNumberOfPixels,Dimension*totalControlPoints);
-        MatrixXf gradCw = gradV(alpha, lam, Bmatrix, S, weights, controlPointsImage, fixedImage, movingImage, insideRegion, ssds(step), Jfixed);
-//        SparseMatrix<CoeffType> HessianCw = hessV(alpha, lam, J, S);
-        
-        weights = weights - solver.solve(gradCw);
-        if(solver.info()!=Success) {
-            std::cout <<  "solving failed" << std::endl;
-        }
-        
-//        MatrixXf HessianCwInv = HessianCw.inverse();
-//        MatrixXf HessianCwInv = pinv(HessianCw);
-//        weights = weights - HessianCwInv*gradCw;
-        
-        weightsAll.col(step) = weights;
-    }
-
-    std::ostringstream ssdsFilename;
-    ssdsFilename << outputName << "_ssds.txt";
-    std::ofstream ssdsFile;
-    ssdsFile.open (ssdsFilename.str().c_str());
-    ssdsFile << ssds;
-    ssdsFile.close();
-
-    std::ostringstream weightsAllFilename;
-    weightsAllFilename << outputName << "_weightsAll.txt";
-    saveMatrixToFile(weightsAll, weightsAllFilename.str().c_str());
-    
-    clock.Stop();
-    std::cout << "Gauss-Newton (with preperation): " << clock.GetTotal() << std::endl;
+//    computeJ(Bmatrix, fixedImage, Jfixed);
+//    SparseMatrix<CoeffType> HessianCw = hessV(alpha, lam, Jfixed, S);
+//    
+//    itk::TimeProbe clockInverse;
+//    clockInverse.Start();
+//    
+//    ConjugateGradient< SparseMatrix<CoeffType> > solver; // use ConjugateGradient for large sparse matrices / SimplicialLLT
+//    solver.compute(HessianCw);
+//    if(solver.info()!=Success) {
+//        std::cout << "decomposition failed" << std::endl;
+//    }
+//    
+//    clockInverse.Stop();
+//    std::cout << "compute inverse of HessianCw: " << clockInverse.GetTotal() << std::endl;
+//    
+//    for(unsigned int step = 0; step < noOfSteps; ++step) {
+//        std::cout << "step " << step << std::endl;
+//        
+//        // write current displacement and warped moving images
+//        if(verboseResults) {
+//            VectorCoefficientImageType::Pointer displacementField = createDisplacementField(weights, controlPointsImage, fixedImage, insideRegion);
+//            saveResults(movingImage, displacementField, step, "GN");
+//        }
+//        
+//        // take next step
+////        MatrixXf J = MatrixXf::Zero(totalNumberOfPixels,Dimension*totalControlPoints);
+////        SparseMatrix<CoeffType> J(totalNumberOfPixels,Dimension*totalControlPoints);
+//        MatrixXf gradCw = gradV(alpha, lam, Bmatrix, S, weights, controlPointsImage, fixedImage, movingImage, insideRegion, ssds(step), Jfixed);
+////        SparseMatrix<CoeffType> HessianCw = hessV(alpha, lam, J, S);
+//        
+//        weights = weights - solver.solve(gradCw);
+//        if(solver.info()!=Success) {
+//            std::cout <<  "solving failed" << std::endl;
+//        }
+//        
+////        MatrixXf HessianCwInv = HessianCw.inverse();
+////        MatrixXf HessianCwInv = pinv(HessianCw);
+////        weights = weights - HessianCwInv*gradCw;
+//        
+//        weightsAll.col(step) = weights;
+//    }
+//
+//    std::ostringstream ssdsFilename;
+//    ssdsFilename << outputName << "_ssds.txt";
+//    std::ofstream ssdsFile;
+//    ssdsFile.open (ssdsFilename.str().c_str());
+//    ssdsFile << ssds;
+//    ssdsFile.close();
+//
+//    std::ostringstream weightsAllFilename;
+//    weightsAllFilename << outputName << "_weightsAll.txt";
+//    saveMatrixToFile(weightsAll, weightsAllFilename.str().c_str());
+//    
+//    clock.Stop();
+//    std::cout << "Gauss-Newton (with preperation): " << clock.GetTotal() << std::endl;
     
     // Hamiltonian Monte Carlo
     
     itk::TimeProbe clockHMC;
     clockHMC.Start();
     
-//    weights = MatrixXf::Zero(Dimension*totalControlPoints, 1);
+    weights = MatrixXf::Zero(Dimension*totalControlPoints, 1);
     
 //    std::random_device rd;
 //    std::mt19937 gen(rd());
@@ -892,10 +892,10 @@ int main( int argc, char** argv ) {
 //    saveMatrixToFile(HessianCw,"HessianCw.txt");
     Eigen::SimplicialLLT< SparseMatrix<CoeffType> > cholesky;
     Eigen::SparseLU< SparseMatrix<CoeffType> > solverLt;
-    if(hessianProposal) {
-        cholesky.compute(HessianCw);
-        solverLt.compute(cholesky.matrixU());
-    }
+//    if(hessianProposal) {
+//        cholesky.compute(HessianCw);
+//        solverLt.compute(cholesky.matrixU());
+//    }
 //    MatrixXf invMatrixU = solverLt.solve(MatrixXf::Identity(HessianCw.rows(),HessianCw.cols()));
 //    saveMatrixToFile(invMatrixU,"invMatrixU.txt");
     
